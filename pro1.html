@@ -1,0 +1,246 @@
+<!-- Save as mood-music.html -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mood Music Recommender — Demo</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+  :root{--bg:#0f1720;--card:#0b1220;--accent:#00b894;--muted:#9aa8b2;--glass:rgba(255,255,255,0.04);}
+  *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#071021 0%,#0f1720 100%);color:#e6eef3;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;min-height:100vh}
+  .wrap{max-width:1100px;margin:40px auto;padding:24px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+  h1{font-size:1.4rem;margin:0}
+  p.lead{color:var(--muted);margin:6px 0 0;font-size:0.95rem}
+  .moods{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0}
+  .mood{background:var(--glass);border-radius:12px;padding:10px 14px;cursor:pointer;transition:transform .2s,box-shadow .2s;display:flex;align-items:center;gap:10px}
+  .mood:hover{transform:translateY(-6px);box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+  .mood.active{background:linear-gradient(90deg,var(--accent),#06a6f6);color:#062024}
+  .mood i{width:28px;height:28px;display:grid;place-items:center}
+  .main{display:grid;grid-template-columns:1fr 360px;gap:18px}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.03)}
+  .playlist{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+  .track{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;background:rgba(255,255,255,0.01);transition:transform .15s}
+  .track:hover{transform:translateX(6px)}
+  .thumb{width:56px;height:56px;border-radius:8px;background:#18232b;display:grid;place-items:center;font-weight:700;color:var(--accent)}
+  .meta{flex:1}
+  .title{font-weight:600}
+  .sub{color:var(--muted);font-size:0.9rem}
+  .controls{display:flex;gap:8px;align-items:center}
+  button.icon{background:transparent;border:0;color:var(--muted);cursor:pointer;padding:6px;border-radius:8px}
+  button.icon.favorite.active{color:#ff7675}
+  audio{width:100%;outline:none}
+  .right-column .panel{margin-bottom:16px}
+  .favorites .fav-item{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.01)}
+  .empty{color:var(--muted);font-size:0.95rem}
+  footer{margin-top:22px;color:var(--muted);font-size:0.9rem;text-align:center}
+  @media (max-width:920px){.main{grid-template-columns:1fr}.right-column{order:2}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Mood Music Recommender</h1>
+      <p class="lead">Pick a mood and get a curated playlist. Save favorites locally.</p>
+    </div>
+    <div style="text-align:right;color:var(--muted)"></div>
+  </header>
+
+  <div class="moods" id="moodBtns"></div>
+
+  <div class="main">
+    <div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <strong id="selectedMood" style="font-size:1.05rem">Choose a mood</strong>
+            <div style="color:var(--muted);font-size:0.9rem" id="moodDesc">We’ll show songs that match your vibe.</div>
+          </div>
+          <div style="color:var(--muted);font-size:0.9rem"> </div>
+        </div>
+
+        <div class="playlist" id="playlist"></div>
+      </div>
+    </div>
+
+    <aside class="right-column">
+      <div class="panel card">
+        <strong>Now Playing</strong>
+        <div id="nowPlaying" style="margin-top:10px;color:var(--muted)">No track selected</div>
+        <audio id="player" controls style="margin-top:12px"></audio>
+      </div>
+
+      <div class="panel card favorites">
+        <strong>Favorites</strong>
+        <div id="favoritesList" style="margin-top:10px"></div>
+      </div>
+
+      <div class="panel card">
+        <strong>How it works</strong>
+        <p style="color:var(--muted);font-size:0.95rem;margin-top:8px">Pick a mood, explore tracks, preview them, and save favorites — everything stored locally.</p>
+      </div>
+    </aside>
+  </div>
+
+  <footer></footer>
+</div>
+
+<script>
+  // Simple demo dataset
+  const DATA = {
+    happy: {
+      label: "Happy",
+      desc: "Upbeat and bright songs to lift your mood.",
+      tracks: [
+        {id:'h1',title:'Sunlit Drive',artist:'Neon Days',src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'},
+        {id:'h2',title:'Golden Hour',artist:'Paper Planes',src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'},
+        {id:'h3',title:'Bubblegum Sky',artist:'Azure Kids',src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'}
+      ]
+    },
+    calm: {
+      label: "Calm",
+      desc: "Soft, minimal tracks for focus and relaxation.",
+      tracks: [
+        {id:'c1',title:'Drift & Breathe',artist:'Low Tide',src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3'},
+        {id:'c2',title:'Paper Waves',artist:'Quiet Room',src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3'}
+      ]
+    },
+    focused: {
+      label: "Focused",
+      desc: "Instrumental and steady beats to help concentration.",
+      tracks: [
+        {id:'f1',title:'Clockwork Study',artist:'Focus Lab',src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3'},
+        {id:'f2',title:'Binary Flow',artist:'Codestep',src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3'}
+      ]
+    },
+    energetic: {
+      label: "Energetic",
+      desc: "High-energy tracks to boost activity.",
+      tracks: [
+        {id:'e1',title:'Pulse Rush',artist:'Amp City',src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3'},
+        {id:'e2',title:'Neon Sprint',artist:'Afterburn',src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3'}
+      ]
+    },
+    melancholy: {
+      label: "Melancholy",
+      desc: "Thoughtful and ambient songs for introspection.",
+      tracks: [
+        {id:'m1',title:'Faint Echoes',artist:'Grey Harbor',src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'},
+        {id:'m2',title:'Late Rain',artist:'Windowseat',src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3'}
+      ]
+    }
+  };
+
+  const moodBtns = document.getElementById('moodBtns');
+  const playlistEl = document.getElementById('playlist');
+  const selectedMood = document.getElementById('selectedMood');
+  const moodDesc = document.getElementById('moodDesc');
+  const player = document.getElementById('player');
+  const nowPlaying = document.getElementById('nowPlaying');
+  const favoritesList = document.getElementById('favoritesList');
+
+  // Load favorites from localStorage
+  let favorites = JSON.parse(localStorage.getItem('mood_favs')||'[]');
+
+  function renderMoods(){
+    moodBtns.innerHTML = '';
+    for(const key of Object.keys(DATA)){
+      const md = DATA[key];
+      const btn = document.createElement('button');
+      btn.className = 'mood';
+      btn.dataset.key = key;
+      btn.innerHTML = `<i class="fa fa-music"></i><div><strong>${md.label}</strong><div style="color:var(--muted);font-size:0.9rem">${md.tracks.length} tracks</div></div>`;
+      btn.addEventListener('click', () => selectMood(key, btn));
+      moodBtns.appendChild(btn);
+    }
+  }
+
+  function selectMood(key, btn){
+    document.querySelectorAll('.mood').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const mood = DATA[key];
+    selectedMood.textContent = mood.label;
+    moodDesc.textContent = mood.desc;
+    renderPlaylist(mood.tracks);
+  }
+
+  function renderPlaylist(tracks){
+    playlistEl.innerHTML = '';
+    tracks.forEach(t => {
+      const el = document.createElement('div');
+      el.className = 'track';
+      el.innerHTML = `
+        <div class="thumb">${t.title.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
+        <div class="meta">
+          <div class="title">${t.title}</div>
+          <div class="sub">${t.artist}</div>
+        </div>
+        <div class="controls">
+          <button class="icon play" title="Play"><i class="fa fa-play"></i></button>
+          <button class="icon favorite ${favorites.includes(t.id)?'active':''}" title="Favorite"><i class="fa fa-heart"></i></button>
+        </div>
+      `;
+      // play button
+      el.querySelector('.play').addEventListener('click', () => {
+        player.src = t.src;
+        player.play();
+        nowPlaying.innerHTML = `<strong>${t.title}</strong> — ${t.artist}`;
+      });
+      // favorite toggle
+      el.querySelector('.favorite').addEventListener('click', (ev) => {
+        const btn = ev.currentTarget;
+        toggleFavorite(t);
+        btn.classList.toggle('active');
+        renderFavorites();
+      });
+      playlistEl.appendChild(el);
+    });
+  }
+
+  function toggleFavorite(track){
+    if(favorites.includes(track.id)){
+      favorites = favorites.filter(x=>x!==track.id);
+    } else {
+      favorites.push(track.id);
+    }
+    localStorage.setItem('mood_favs', JSON.stringify(favorites));
+  }
+
+  function renderFavorites(){
+    favoritesList.innerHTML = '';
+    if(favorites.length === 0){
+      favoritesList.innerHTML = `<div class="empty">No favorites yet — click the ♥ on a track to save it.</div>`;
+      return;
+    }
+    // find track info
+    const favEls = [];
+    for(const key of Object.keys(DATA)){
+      DATA[key].tracks.forEach(t=>{
+        if(favorites.includes(t.id)) favEls.push(t);
+      });
+    }
+    favEls.forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'fav-item';
+      div.innerHTML = `<div style="flex:1"><strong>${t.title}</strong><div style="color:var(--muted);font-size:0.9rem">${t.artist}</div></div>
+        <div><button class="icon playFav"><i class="fa fa-play"></i></button></div>`;
+      div.querySelector('.playFav').addEventListener('click', () => {
+        player.src = t.src; player.play();
+        nowPlaying.innerHTML = `<strong>${t.title}</strong> — ${t.artist}`;
+      });
+      favoritesList.appendChild(div);
+    });
+  }
+
+  // Initialize UI
+  renderMoods();
+  renderFavorites();
+
+  // Select default mood
+  const firstMoodBtn = document.querySelector('.mood');
+  if(firstMoodBtn) firstMoodBtn.click();
+</script>
+</body>
+</html>

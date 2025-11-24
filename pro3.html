@@ -1,0 +1,174 @@
+<!-- Save as study-buddy.html -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Study Buddy — Demo</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+  :root{--bg:#0b1320;--card:#071224;--accent:#06a6f6;--accent2:#00b894;--muted:#9fb3c8}
+  *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#071428 0%,#0b1320 100%);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:#e6f4ff;min-height:100vh}
+  .wrap{max-width:920px;margin:28px auto;padding:18px}
+  header{display:flex;justify-content:space-between;align-items:center}
+  h1{margin:0;font-size:1.3rem;color:var(--accent)}
+  .lead{color:var(--muted);font-size:0.95rem}
+  .chat-wrap{display:grid;grid-template-columns:1fr 300px;gap:16px;margin-top:18px}
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px}
+  .messages{height:60vh;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+  .bubble{max-width:78%;padding:10px 12px;border-radius:12px;background:#082033}
+  .bubble.user{align-self:flex-end;background:linear-gradient(90deg,var(--accent2),var(--accent));color:#042025}
+  .bubble.assistant{align-self:flex-start;background:#071b2a;color:var(--muted)}
+  .type-indicator{width:60px;height:18px;border-radius:12px;background:#072430;display:flex;align-items:center;gap:6px;padding:4px 8px;color:var(--muted);font-size:0.85rem}
+  .input-row{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(255,255,255,0.02)}
+  input.chat{flex:1;padding:10px;border-radius:10px;border:none;background:#051420;color:#e6f4ff}
+  button.btn{padding:8px 10px;border-radius:8px;border:none;background:var(--accent);color:#04182a;cursor:pointer}
+  .sidebar .category{padding:10px;border-radius:8px;margin-bottom:8px;background:#071b2a;cursor:pointer;color:var(--muted)}
+  .sidebar .category:hover{background:#0b2b3f;color:#e6f4ff}
+  .small{font-size:0.9rem;color:var(--muted)}
+  .export{margin-top:10px}
+  @media (max-width:880px){.chat-wrap{grid-template-columns:1fr} .sidebar{order:2}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Study Buddy — Offline Assistant</h1>
+      <div class="lead">A lightweight chat UI with helpful, prewritten responses for studying.</div>
+    </div>
+    <div style="color:var(--muted)"></div>
+  </header>
+
+  <div class="chat-wrap">
+    <div class="panel">
+      <div class="messages" id="messages"></div>
+
+      <div class="input-row">
+        <input id="inputBox" class="chat" placeholder="Ask me about studying or choose a category..." />
+        <button id="sendBtn" class="btn"><i class="fa fa-paper-plane"></i></button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;color:var(--muted)">
+        <div id="typing" class="small"></div>
+        <div class="small"><button id="exportBtn" class="btn" style="background:#00b894">Export</button></div>
+      </div>
+    </div>
+
+    <aside class="sidebar panel">
+      <div><strong>Categories</strong></div>
+      <div style="margin-top:10px">
+        <div class="category" data-cat="motivation">Motivation Boost</div>
+        <div class="category" data-cat="studyTips">Study Tips</div>
+        <div class="category" data-cat="timeMgmt">Time Management</div>
+        <div class="category" data-cat="concentration">Concentration Tricks</div>
+      </div>
+      <div style="margin-top:12px" class="small">Click a category to send helpful suggestions automatically.</div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  // Prewritten responses
+  const RESPONSES = {
+    motivation:[
+      "You've got this. Break tasks into tiny wins — each small step builds momentum.",
+      "Remember: focusing on progress, not perfection, keeps you moving forward."
+    ],
+    studyTips:[
+      "Study in focused intervals (e.g., 25–50 minutes) and review actively instead of passively re-reading.",
+      "Create a short summary or teach the topic aloud — teaching is one of the best tests of understanding."
+    ],
+    timeMgmt:[
+      "Prioritize tasks with the Eisenhower method: urgent vs important. Block deep focus time on your calendar.",
+      "Use a 2-minute rule: if a task takes <2 minutes, do it now to avoid small-task pileup."
+    ],
+    concentration:[
+      "Reduce distractions: put phone on Do Not Disturb and use a single-tab focus window.",
+      "Try background ambient sounds or low-volume instrumental music to improve concentration."
+    ],
+    fallback:[
+      "I can help with study strategies, time management tips, and motivation. Try asking about 'active recall' or 'Pomodoro'.",
+      "If you tell me your subject, I can suggest a study plan outline."
+    ]
+  };
+
+  const messagesEl = document.getElementById('messages');
+  const inputBox = document.getElementById('inputBox');
+  const sendBtn = document.getElementById('sendBtn');
+  const typingEl = document.getElementById('typing');
+  const exportBtn = document.getElementById('exportBtn');
+
+  function appendBubble(text, who='assistant'){
+    const div = document.createElement('div');
+    div.className = 'bubble ' + (who==='user'?'user':'assistant');
+    div.textContent = text;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function botRespond(category, input){
+    // Simulate "thinking"
+    typingEl.textContent = 'Study Buddy is typing...';
+    setTimeout(()=>{
+      const pool = RESPONSES[category] || RESPONSES.fallback;
+      const out = pool[Math.floor(Math.random()*pool.length)];
+      appendBubble(out,'assistant');
+      typingEl.textContent = '';
+      // save conversation locally
+      saveChat();
+    }, 700 + Math.random()*800);
+  }
+
+  // category click
+  document.querySelectorAll('.category').forEach(cat=>{
+    cat.addEventListener('click', () => {
+      appendBubble(cat.textContent,'user');
+      botRespond(cat.dataset.cat);
+    });
+  });
+
+  // send custom message
+  function sendMessage(){
+    const v = inputBox.value.trim();
+    if(!v) return;
+    appendBubble(v,'user');
+    inputBox.value='';
+    // naive intent match
+    const text = v.toLowerCase();
+    if(text.includes('motiva')||text.includes('encour')) botRespond('motivation', v);
+    else if(text.includes('time')||text.includes('schedule')||text.includes('pomodoro')) botRespond('timeMgmt', v);
+    else if(text.includes('focus')||text.includes('concen')) botRespond('concentration', v);
+    else if(text.includes('study')||text.includes('tips')||text.includes('learn')) botRespond('studyTips', v);
+    else botRespond('fallback', v);
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  inputBox.addEventListener('keydown', (e)=>{ if(e.key==='Enter') sendMessage(); });
+
+  // export chat
+  exportBtn.addEventListener('click', ()=>{
+    const nodes = Array.from(messagesEl.querySelectorAll('.bubble'));
+    const txt = nodes.map(n => (n.classList.contains('user')? 'You: ' : 'Buddy: ') + n.textContent).join('\\n');
+    const blob = new Blob([txt], {type:'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'study-chat.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // Save / load local chat
+  const chatKey = 'study_buddy_chat_v1';
+  function saveChat(){
+    const nodes = Array.from(messagesEl.querySelectorAll('.bubble'));
+    const arr = nodes.map(n => ({who: n.classList.contains('user') ? 'user' : 'assistant', text: n.textContent}));
+    localStorage.setItem(chatKey, JSON.stringify(arr));
+  }
+  function loadChat(){
+    const arr = JSON.parse(localStorage.getItem(chatKey)||'[]');
+    arr.forEach(m => appendBubble(m.text, m.who));
+  }
+  loadChat();
+</script>
+</body>
+</html>

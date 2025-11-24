@@ -1,0 +1,211 @@
+<!-- Save as affirmation-habits.html -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Affirmation + Habit Tracker — Demo</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+  :root{--bg:#f6fafb;--card:#ffffff;--accent:#0984e3;--muted:#6b7b88;--good:#00b894}
+  *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eaf6ff 0,#f6fafb 100%);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:#0f1720}
+  .wrap{max-width:980px;margin:28px auto;padding:20px}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  h1{margin:0;font-size:1.3rem;color:var(--accent)} .lead{color:var(--muted);font-size:0.95rem}
+  .grid{display:grid;grid-template-columns:1fr 340px;gap:18px;margin-top:18px}
+  .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 8px 30px rgba(18,52,80,0.06)}
+  .affirmation{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+  .affirmation .text{font-size:1.05rem;font-weight:600}
+  .controls{display:flex;gap:8px}
+  .btn{padding:8px 12px;border-radius:8px;border:none;cursor:pointer;background:var(--accent);color:#fff;font-weight:600}
+  .small{padding:6px 8px;font-size:0.9rem}
+  .habits{display:flex;flex-direction:column;gap:8px}
+  .habit{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:8px;background:#fbfeff}
+  .days{display:flex;gap:6px;margin-top:8px}
+  .day{width:28px;height:28px;border-radius:6px;display:grid;place-items:center;background:#f1f6f9;color:var(--muted);font-weight:700;cursor:pointer}
+  .day.done{background:var(--good);color:#fff}
+  .summary{color:var(--muted);font-size:0.95rem;margin-top:8px}
+  footer{text-align:center;margin-top:18px;color:var(--muted)}
+  @media (max-width:880px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Affirmation + Habit Tracker</h1>
+      <div class="lead">Daily encouragement and simple habit tracking to build momentum.</div>
+    </div>
+    <div style="text-align:right;color:var(--muted)"></div>
+  </header>
+
+  <div class="grid">
+    <main>
+      <div class="card affirmation">
+        <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
+          <div>
+            <div style="color:var(--muted);font-size:0.9rem">Today's Affirmation</div>
+            <div class="text" id="affirmText">Click generate to get an affirmation</div>
+          </div>
+          <div class="controls">
+            <button class="btn" id="genBtn"><i class="fa fa-lightbulb"></i>&nbsp;Generate</button>
+            <button class="btn small" id="shareBtn" title="Copy affirmation">Copy</button>
+          </div>
+        </div>
+        <div style="margin-top:12px;color:var(--muted);font-size:0.95rem">Tip: press generate each morning to set a positive tone.</div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <strong>Weekly Progress</strong>
+        <div id="progressSummary" style="margin-top:8px;color:var(--muted)">No habits tracked yet.</div>
+      </div>
+    </main>
+
+    <aside>
+      <div class="card">
+        <strong>Habits</strong>
+        <div class="habits" id="habitsList" style="margin-top:10px"></div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <input id="newHabit" placeholder="New habit (e.g. Read 20 mins)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6eef3">
+          <button class="btn small" id="addHabit">Add</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>Save your habits locally — works offline.</footer>
+</div>
+
+<script>
+  // Affirmations pool
+  const AFF = [
+    "I approach challenges with curiosity and confidence.",
+    "Every small step I take compounds into meaningful progress.",
+    "I focus on what I can control and let go of what I cannot.",
+    "My work is improving every day; I’m growing where it matters.",
+    "I make time to learn, and learning makes me stronger."
+  ];
+
+  const habitsKey = 'demo_habits_v1';
+  let habits = JSON.parse(localStorage.getItem(habitsKey)||'[]');
+
+  const affirmText = document.getElementById('affirmText');
+  const genBtn = document.getElementById('genBtn');
+  const shareBtn = document.getElementById('shareBtn');
+  const habitsList = document.getElementById('habitsList');
+  const newHabit = document.getElementById('newHabit');
+  const addHabit = document.getElementById('addHabit');
+  const progressSummary = document.getElementById('progressSummary');
+
+  function getTodayIndex(){ return Math.floor((Date.now())/(1000*60*60*24)); }
+
+  // Load saved affirmation for today if exists
+  const savedAffKey = 'demo_affirm_today';
+  const savedAff = JSON.parse(localStorage.getItem(savedAffKey)||'{}');
+  if(savedAff.date === getTodayIndex() && savedAff.text) affirmText.textContent = savedAff.text;
+
+  genBtn.addEventListener('click', () => {
+    const t = AFF[Math.floor(Math.random()*AFF.length)];
+    affirmText.textContent = t;
+    localStorage.setItem(savedAffKey, JSON.stringify({date:getTodayIndex(),text:t}));
+  });
+
+  shareBtn.addEventListener('click', () => {
+    navigator.clipboard?.writeText(affirmText.textContent || '').then(()=> {
+      const prev = shareBtn.innerText;
+      shareBtn.innerText = 'Copied!';
+      setTimeout(()=> shareBtn.innerText = prev,1200);
+    });
+  });
+
+  function renderHabits(){
+    habitsList.innerHTML = '';
+    if(habits.length===0){ habitsList.innerHTML = '<div style="color:var(--muted)">No habits — add one to start small.</div>'; updateSummary(); return; }
+    const today = getTodayIndex();
+    habits.forEach((h,idx)=>{
+      const el = document.createElement('div');
+      el.className = 'habit';
+      const doneToday = (h.checks||[]).includes(today);
+      el.innerHTML = `<div style="flex:1"><strong>${h.name}</strong><div class="summary" style="margin-top:6px">Streak: <strong>${computeStreak(h)}</strong></div></div>
+        <div style="text-align:right">
+          <div class="days" id="days-${idx}"></div>
+          <div style="margin-top:8px"><button class="btn small toggle" data-idx="${idx}">${doneToday?'Undo':'Mark'}</button> <button class="btn small" data-del="${idx}" style="background:#ff7675">Delete</button></div>
+        </div>`;
+      habitsList.appendChild(el);
+      renderDays(idx);
+    });
+    updateSummary();
+    attachHabitButtons();
+  }
+
+  function renderDays(idx){
+    const el = document.getElementById('days-'+idx);
+    el.innerHTML = '';
+    const h = habits[idx];
+    const daysToShow = 7;
+    const today = getTodayIndex();
+    for(let i=daysToShow-1;i>=0;i--){
+      const dayIndex = today - i;
+      const dayBox = document.createElement('div');
+      dayBox.className = 'day' + ((h.checks||[]).includes(dayIndex)?' done':'');
+      dayBox.textContent = new Date(dayIndex*24*3600*1000).toLocaleDateString(undefined,{weekday:'short'}).slice(0,1);
+      el.appendChild(dayBox);
+    }
+  }
+
+  function computeStreak(h){
+    const checks = h.checks||[];
+    const today = getTodayIndex();
+    let streak = 0;
+    for(let i=0;i<100;i++){
+      if(checks.includes(today-i)) streak++; else break;
+    }
+    return streak;
+  }
+
+  function attachHabitButtons(){
+    document.querySelectorAll('.btn.toggle').forEach(b=>{
+      b.addEventListener('click', (ev)=>{
+        const idx = +ev.currentTarget.dataset.idx;
+        toggleHabitToday(idx);
+      });
+    });
+    document.querySelectorAll('button[data-del]').forEach(b=>{
+      b.addEventListener('click',(ev)=>{
+        const idx = +ev.currentTarget.dataset.del;
+        if(confirm('Delete this habit?')){ habits.splice(idx,1); saveHabits(); renderHabits(); }
+      });
+    });
+  }
+
+  function toggleHabitToday(idx){
+    const h = habits[idx];
+    const today = getTodayIndex();
+    h.checks = h.checks||[];
+    if(h.checks.includes(today)) h.checks = h.checks.filter(x=>x!==today);
+    else h.checks.push(today);
+    saveHabits(); renderHabits();
+  }
+
+  function saveHabits(){ localStorage.setItem(habitsKey, JSON.stringify(habits)); }
+
+  addHabit.addEventListener('click', ()=>{
+    const name = newHabit.value.trim();
+    if(!name) return alert('Enter a habit name');
+    habits.push({name,checks:[]});
+    newHabit.value=''; saveHabits(); renderHabits();
+  });
+
+  function updateSummary(){
+    if(habits.length===0){ progressSummary.textContent = 'No habits yet.'; return; }
+    const total = habits.length;
+    const today = getTodayIndex();
+    const doneToday = habits.filter(h=> (h.checks||[]).includes(today)).length;
+    progressSummary.textContent = `${doneToday} of ${total} habits completed today.`;
+  }
+
+  // init
+  renderHabits();
+</script>
+</body>
+</html>
