@@ -8,8 +8,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     * {
-  font-family: 'Poppins', sans-serif;
-}
+      font-family: 'Poppins', sans-serif;
+    }
     :root {
       /* Vintage / warm palette */
       --primary: #6b3f2b; /* deep brown */
@@ -37,6 +37,13 @@
       filter: sepia(0.15) saturate(0.9) contrast(0.95);
       position: relative;
       min-height: 100vh;
+    }
+
+    /* lighten filter on small screens for better contrast */
+    @media (max-width: 576px) {
+      body {
+        filter: sepia(0.08) saturate(1) contrast(1);
+      }
     }
 
     /* subtle paper overlay + vignette to blend content with vintage bg */
@@ -192,12 +199,16 @@
     .btn-secondary{background:transparent; color:var(--muted); border:1.5px solid rgba(255,244,230,0.12)}
     .btn-secondary:hover{background: rgba(255,244,230,0.06); transform:translateY(-3px)}
 
-    .hero-img{position:absolute; right:5%; bottom:0; width:34%; max-width:480px; border-radius:16px; overflow:hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.55)}
+    /* default hero image container - rectangular for desktop */
+    .hero-img { position:absolute; right:5%; bottom:0; width:34%; max-width:480px; border-radius:16px; overflow:hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; }
 
+    /* ensure img fills container and avoids distortion */
     .hero-img img {
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: cover;
       display: block;
+      /* do not force a circular crop on desktop here */
     }
 
     /* Sections */
@@ -244,6 +255,7 @@
       height: auto;
       display: block;
       transition: var(--transition);
+      object-fit: cover;
     }
 
     .about-img:hover img {
@@ -287,6 +299,7 @@
       border-radius: 5px;
       position: relative;
       transition: width 1.5s ease;
+      width: 0; /* start at 0 so animation grows to data-percent */
     }
 
     .skill-fill::after {
@@ -497,6 +510,10 @@
         right: auto;
         bottom: auto;
         order: 1;
+        /* make circular on tablet and below for consistency */
+        aspect-ratio: 1/1;
+        border-radius: 50%;
+        overflow: hidden;
       }
       
       .hero h1 {
@@ -516,6 +533,14 @@
       
       .hero-btns {
         justify-content: center;
+      }
+
+      /* ensure image inside circular container fills and stays centered */
+      .hero-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 0; /* container provides circle */
       }
     }
 
@@ -616,11 +641,24 @@
         margin-bottom: 1.5rem;
       }
       
+      /* hero image becomes circular and centered on phones */
       .hero-img {
         width: 80%;
         max-width: 250px;
+        aspect-ratio: 1/1;
+        border-radius: 50%;
+        right: auto;
+        bottom: auto;
+        position: relative;
+        margin: 0 auto;
       }
-      
+      .hero-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 0; /* container provides the circle */
+      }
+
       section {
         padding: 3rem 5%;
       }
@@ -679,18 +717,18 @@
         gap: 1rem;
       }
       
-    .copyright {
-      font-size: 0.8rem;
-    }
-  } /* <-- Close @media (max-width: 576px) */
+      .copyright {
+        font-size: 0.8rem;
+      }
+    } /* <-- Close @media (max-width: 576px) */
 
-  @media (max-width: 768px) {
-    .menu-toggle {
-      display: block;
-      position: absolute; /* Add this */
-      right: 5%; /* Add this - same as header padding */
+    @media (max-width: 768px) {
+      .menu-toggle {
+        display: block;
+        position: absolute; /* Add this */
+        right: 5%; /* Add this - same as header padding */
+      }
     }
-  }
 
     /* Small Mobile Phones */
     @media (max-width: 380px) {
@@ -725,20 +763,26 @@
       }
       
       .hero-img {
-  width: 40%;          /* relative to parent container */
-  max-width: 300px;    /* optional max size */
-  aspect-ratio: 1 / 1; /* keeps height equal to width */
-  object-fit: cover;   /* fills the circle without distortion */
-  border-radius: 50%;  /* makes it circular */
-  margin: 0 auto;      /* center horizontally */
-}
+        width: 40%;          /* relative to parent container */
+        max-width: 300px;    /* optional max size */
+        aspect-ratio: 1 / 1; /* keeps height equal to width */
+        object-fit: cover;   /* fills the circle without distortion */
+        border-radius: 50%;  /* makes it circular */
+        margin: 0 auto;      /* center horizontally */
+      }
     }
+
+    /* avoid overlap: hide full logo text on very tiny screens */
+    @media (max-width: 350px) {
+      .logo-text { display: none; }
+    }
+
     .profile-img {
-  width: 150px;      /* any size */
-  height: 150px;     /* use the same value to keep it round */
-  object-fit: cover; /* prevents distortion */
-  border-radius: 50%;
-}
+      width: 150px;      /* any size */
+      height: 150px;     /* use the same value to keep it round */
+      object-fit: cover; /* prevents distortion */
+      border-radius: 50%;
+    }
   </style>
 </head>
 <body>
@@ -749,7 +793,7 @@
       <span class="logo-text">Kaye Bolasco Florendo</span>
     </div>
     
-    <div class="menu-toggle">
+    <div class="menu-toggle" aria-label="Toggle menu" role="button">
       <i class="fas fa-bars"></i>
     </div>
     
@@ -776,7 +820,7 @@
       </div>
     </div>
     
-    <div class="hero-img fade-in">
+    <div class="hero-img fade-in" aria-hidden="false">
       <img src="pic.jpg" alt="Kaye Bolasco Florendo" class="profile-img">
     </div>
   </section>
@@ -796,7 +840,7 @@
   <p>Hi! I'm Kaye Bolasco Florendo — a developer who enjoys transforming ideas into meaningful digital experiences. I specialize in building clean, efficient, and user-centered applications that blend functionality with creativity.</p>
   <p>My journey in tech began with curiosity and quickly grew into a passion for creating tools, interfaces, and solutions that people genuinely enjoy using. I’m always learning, experimenting, and pushing myself to grow through new technologies and challenges.</p>
   <p>When I’m not coding, I’m exploring design inspiration, diving into new frameworks, or working on personal projects that help sharpen my skills.</p>
-  <a href=kee-resume.pdf target="_blank" class="btn btn-primary">View My Resume</a>
+  <a href="kee-resume.pdf" target="_blank" class="btn btn-primary">View My Resume</a>
 </div>
 
     </div>
@@ -812,7 +856,8 @@
       <div class="skill-card">
         <h3>Web Development</h3>
         <div class="skill-bar">
-          <div class="skill-fill" data-percent="40%" style="width: 100%"></div>
+          <!-- START width 0 so JS can animate to 40% -->
+          <div class="skill-fill" data-percent="40%"></div>
         </div>
         <p>Creating responsive, modern websites with HTML, CSS, and JavaScript.</p>
       </div>
@@ -820,7 +865,7 @@
       <div class="skill-card">
         <h3>UI/UX Design</h3>
         <div class="skill-bar">
-          <div class="skill-fill" data-percent="60%" style="width: 100%"></div>
+          <div class="skill-fill" data-percent="60%"></div>
         </div>
         <p>Designing intuitive user interfaces with a focus on user experience.</p>
       </div>
@@ -828,7 +873,7 @@
       <div class="skill-card">
         <h3>Problem Solving</h3>
         <div class="skill-bar">
-          <div class="skill-fill" data-percent="75%" style="width: 100%"></div>
+          <div class="skill-fill" data-percent="75%"></div>
         </div>
         <p>Analyzing complex problems and developing efficient solutions.</p>
       </div>
@@ -843,7 +888,7 @@
     
     <div class="projects-grid">
       <div class="project-card">
-        <div class="project-img">
+        <div class="project-img" aria-hidden="true">
           <!-- Placeholder for project image -->
           <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
             <i class="fas fa-music"></i>
@@ -859,7 +904,7 @@
       </div>
       
       <div class="project-card">
-        <div class="project-img">
+        <div class="project-img" aria-hidden="true">
           <!-- Placeholder for project image -->
           <div style="background: linear-gradient(135deg, #ff6b6b, #ffa36c); height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
             <i class="fas fa-tasks"></i>
@@ -875,7 +920,7 @@
       </div>
       
       <div class="project-card">
-        <div class="project-img">
+        <div class="project-img" aria-hidden="true">
           <!-- Placeholder for project image -->
           <div style="background: linear-gradient(135deg, #4ecdc4, #44a08d); height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
             <i class="fas fa-book"></i>
@@ -980,6 +1025,7 @@
     // Header scroll effect
     window.addEventListener('scroll', function() {
       const header = document.getElementById('header');
+      if (!header) return;
       if (window.scrollY > 50) {
         header.classList.add('scrolled');
       } else {
@@ -990,49 +1036,69 @@
     // Mobile menu toggle
     const menuToggle = document.querySelector('.menu-toggle');
     const navMenu = document.querySelector('nav ul');
-    
-    menuToggle.addEventListener('click', function() {
-      navMenu.classList.toggle('active');
-      // Toggle menu icon
-      const icon = menuToggle.querySelector('i');
-      if (navMenu.classList.contains('active')) {
-        icon.classList.remove('fa-bars');
-        icon.classList.add('fa-times');
-      } else {
-        icon.classList.remove('fa-times');
-        icon.classList.add('fa-bars');
-      }
-    });
-
-    // Close mobile menu when clicking on a link
-    const navLinks = document.querySelectorAll('nav a');
-    navLinks.forEach(link => {
-      link.addEventListener('click', function() {
-        navMenu.classList.remove('active');
+    if (menuToggle && navMenu) {
+      menuToggle.addEventListener('click', function(e) {
+        e.stopPropagation(); // prevent document click handler from immediately closing it
+        navMenu.classList.toggle('active');
+        // Toggle menu icon
         const icon = menuToggle.querySelector('i');
-        icon.classList.remove('fa-times');
-        icon.classList.add('fa-bars');
+        if (navMenu.classList.contains('active')) {
+          icon.classList.remove('fa-bars');
+          icon.classList.add('fa-times');
+        } else {
+          icon.classList.remove('fa-times');
+          icon.classList.add('fa-bars');
+        }
       });
-    });
 
-    // Close menu when clicking outside
-    document.addEventListener('click', function(event) {
-      const isClickInsideNav = navMenu.contains(event.target) || menuToggle.contains(event.target);
-      if (!isClickInsideNav && navMenu.classList.contains('active')) {
-        navMenu.classList.remove('active');
-        const icon = menuToggle.querySelector('i');
-        icon.classList.remove('fa-times');
-        icon.classList.add('fa-bars');
-      }
-    });
+      // Close mobile menu when clicking on a link
+      const navLinks = document.querySelectorAll('nav a');
+      navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+          navMenu.classList.remove('active');
+          const icon = menuToggle.querySelector('i');
+          if (icon) {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        });
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', function(event) {
+        const isClickInsideNav = navMenu.contains(event.target) || menuToggle.contains(event.target);
+        if (!isClickInsideNav && navMenu.classList.contains('active')) {
+          navMenu.classList.remove('active');
+          const icon = menuToggle.querySelector('i');
+          if (icon) {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        }
+      });
+
+      // Close menu when user scrolls (mobile)
+      window.addEventListener('scroll', function() {
+        if (navMenu.classList.contains('active')) {
+          navMenu.classList.remove('active');
+          const icon = menuToggle.querySelector('i');
+          if (icon) {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        }
+      });
+    }
 
     // Form submission
     const contactForm = document.getElementById('contactForm');
-    contactForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('Thank you for your message! I will get back to you ASAP');
-      contactForm.reset();
-    });
+    if (contactForm) {
+      contactForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert('Thank you for your message! I will get back to you ASAP');
+        contactForm.reset();
+      });
+    }
 
     // Animate skill bars on scroll
     const skillBars = document.querySelectorAll('.skill-fill');
@@ -1043,15 +1109,17 @@
         const screenPosition = window.innerHeight / 1.3;
         
         if (barPosition < screenPosition) {
-          bar.style.width = bar.getAttribute('data-percent');
+          // ensure we animate only once (only if width still 0)
+          if (!bar.style.width || bar.style.width === '0px' || bar.style.width === '0') {
+            bar.style.width = bar.getAttribute('data-percent');
+          }
         }
       });
     }
     
     window.addEventListener('scroll', animateSkillBars);
-    
     // Initial check on page load
-    animateSkillBars();
+    window.addEventListener('load', animateSkillBars);
   </script>
 </body>
 </html>
