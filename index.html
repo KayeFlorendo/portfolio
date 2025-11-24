@@ -4,9 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kaye Bolasco Florendo | Portfolio</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
+    * {
+  font-family: 'Poppins', sans-serif;
+}
     :root {
       /* Vintage / warm palette */
       --primary: #6b3f2b; /* deep brown */
@@ -22,7 +25,7 @@
     html {scroll-behavior: smooth}
 
     body {
-      font-family:sans-serif;
+      font-family:'Poppins', sans-serif;
       color: var(--muted);
       font-size: 18px;
       line-height: 1.6;
@@ -83,7 +86,7 @@
     }
 
     .logo-text {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Poppins', serif;
       font-weight: 700;
       font-size: 1.6rem;
       color: var(--muted);
@@ -162,7 +165,7 @@
     .hero-content {max-width: 640px; z-index: 1}
 
     .hero h1 {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Poppins', serif;
       font-weight: 700;
       font-size: 3.6rem;
       margin-bottom: 0.6rem;
@@ -195,7 +198,6 @@
       width: 100%;
       height: auto;
       display: block;
-      border-radius: 20px 20px 0 0;
     }
 
     /* Sections */
@@ -207,7 +209,7 @@
       position: relative;
     }
 
-    .section-title h2{font-family:'Playfair Display',serif; font-size:2.6rem; color:var(--muted); display:inline-block}
+    .section-title h2{font-family:'Poppins',serif; font-size:2.6rem; color:var(--muted); display:inline-block}
 
     .section-title h2::after {
       content: '';
@@ -723,17 +725,27 @@
       }
       
       .hero-img {
-        width: 30%;
-        max-width: 250px;
-      }
+  width: 40%;          /* relative to parent container */
+  max-width: 300px;    /* optional max size */
+  aspect-ratio: 1 / 1; /* keeps height equal to width */
+  object-fit: cover;   /* fills the circle without distortion */
+  border-radius: 50%;  /* makes it circular */
+  margin: 0 auto;      /* center horizontally */
+}
     }
+    .profile-img {
+  width: 150px;      /* any size */
+  height: 150px;     /* use the same value to keep it round */
+  object-fit: cover; /* prevents distortion */
+  border-radius: 50%;
+}
   </style>
 </head>
 <body>
   <!-- Header -->
   <header id="header">
     <div class="logo">
-      <img src="profpic.jpg" alt="Logo" class="logo-img">
+      <img src="pic.jpg" alt="Logo" class="logo-img">
       <span class="logo-text">Kaye Bolasco Florendo</span>
     </div>
     
@@ -756,7 +768,7 @@
   <section class="hero" id="home">
     <div class="hero-content fade-in">
       <h1>Kaye Bolasco Florendo</h1>
-      <p>Software Developer | Amateur | Web Developer</p>
+      <p>Software Developer | Web Analyst | Software</p>
       <p>I combine creativity with technical precision to convert ideas into meaningful, high-quality software that’s both visually appealing and functionally strong.</p>
       <div class="hero-btns">
         <a href="#projects" class="btn btn-primary">View My Projects</a>
@@ -765,7 +777,7 @@
     </div>
     
     <div class="hero-img fade-in">
-      <img src="profpic.jpg" alt="Riza Mae">
+      <img src="pic.jpg" alt="Kaye Bolasco Florendo" class="profile-img">
     </div>
   </section>
 
@@ -777,7 +789,7 @@
     
     <div class="about-content">
       <div class="about-img">
-        <img src="profpic.jpg" alt="Riza Mae">
+        <img src="pic.jpg" alt="Kaye Bolasco Florendo" class="profile-img" >
       </div>
       
      <div class="about-text">
@@ -950,7 +962,7 @@
   <footer>
     <div class="footer-content">
       <div class="logo">
-        <img src="profpic.jpg" alt="Logo" class="logo-img">
+        <img src="pic.jpg" alt="Logo" class="logo-img">
         <span class="logo-text">Kaye Bolasco Florendo</span>
       </div>
 
